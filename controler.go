@@ -47,12 +47,12 @@ func (controler *DeviceControler) Listen() error {
 
 //USBDeviceDidPlug 设备进入
 func (controler *DeviceControler) USBDeviceDidPlug(frame *USBDeviceAttachedDetachedFrame) {
-	controler.DeviceCount++
 	if controler.Target != "" && controler.Target != frame.Properties.SerialNumber {
 		log.Printf("device plug[%s] but not target", frame.Properties.SerialNumber)
 		return
 	}
 	log.Printf("device plug[%d]: %s %x", controler.DeviceCount, frame.Properties.SerialNumber, frame.Properties.ProductID)
+	controler.DeviceCount++
 	device := &USBDevice{ID: frame.DeviceID, UDID: frame.Properties.SerialNumber, Product: frame.Properties.ProductID, Pluged: true}
 	controler.Devices.Store(frame.DeviceID, device)
 	go controler.progress(device)
@@ -60,10 +60,9 @@ func (controler *DeviceControler) USBDeviceDidPlug(frame *USBDeviceAttachedDetac
 
 //USBDeviceDidUnPlug 设备断开
 func (controler *DeviceControler) USBDeviceDidUnPlug(frame *USBDeviceAttachedDetachedFrame) {
-	controler.DeviceCount--
 	log.Printf("device unplug[%d]: %s", controler.DeviceCount, frame.Properties.SerialNumber)
-	if device, ok := controler.Devices.Load(frame.DeviceID); ok {
-		controler.Devices.Delete(frame.DeviceID)
+	if device, ok := controler.Devices.LoadAndDelete(frame.DeviceID); ok {
+		controler.DeviceCount--
 		device.(*USBDevice).Cancel()
 	}
 }
