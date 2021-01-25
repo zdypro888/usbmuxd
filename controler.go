@@ -23,7 +23,9 @@ type DeviceControler struct {
 	DeviceCount int
 	Devices     *sync.Map
 
-	Callback func(*USBDevice) error
+	OnPlug     func(*USBDevice) bool
+	OnUnPlug   func(*USBDevice)
+	OnProgress func(*USBDevice) error
 }
 
 //NeedSSH 是否需要SSH连接
@@ -54,6 +56,11 @@ func (controler *DeviceControler) USBDeviceDidPlug(frame *USBDeviceAttachedDetac
 	log.Printf("device plug[%d]: %s %x", controler.DeviceCount, frame.Properties.SerialNumber, frame.Properties.ProductID)
 	controler.DeviceCount++
 	device := &USBDevice{ID: frame.DeviceID, UDID: frame.Properties.SerialNumber, Product: frame.Properties.ProductID, Pluged: true}
+	if controler.OnPlug != nil {
+		if !controler.OnPlug(device) {
+			return
+		}
+	}
 	controler.Devices.Store(frame.DeviceID, device)
 	go controler.progress(device)
 }
@@ -61,9 +68,13 @@ func (controler *DeviceControler) USBDeviceDidPlug(frame *USBDeviceAttachedDetac
 //USBDeviceDidUnPlug 设备断开
 func (controler *DeviceControler) USBDeviceDidUnPlug(frame *USBDeviceAttachedDetachedFrame) {
 	log.Printf("device unplug[%d]: %s", controler.DeviceCount, frame.Properties.SerialNumber)
-	if device, ok := controler.Devices.LoadAndDelete(frame.DeviceID); ok {
+	if value, ok := controler.Devices.LoadAndDelete(frame.DeviceID); ok {
 		controler.DeviceCount--
-		device.(*USBDevice).Cancel()
+		device := value.(*USBDevice)
+		device.Cancel()
+		if controler.OnUnPlug != nil {
+			controler.OnUnPlug(device)
+		}
 	}
 }
 
@@ -146,9 +157,9 @@ func (controler *DeviceControler) progress(device *USBDevice) {
 		}
 		return
 	}
-	if controler.Callback != nil {
+	if controler.OnProgress != nil {
 		for device.Pluged {
-			if err := controler.Callback(device); err != nil {
+			if err := controler.OnProgress(device); err != nil {
 				log.Printf("device[%s]: callback error(%v)", device.UDID, err)
 				if strings.Contains(err.Error(), ErrDevicePortUnavailable.Error()) {
 					break
