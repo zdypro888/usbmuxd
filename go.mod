@@ -8,21 +8,15 @@ require (
 	github.com/zdypro888/daemon v1.20.0
 	github.com/zdypro888/utils v1.20.0
 	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122
-	howett.net/plist v1.0.0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/takama/daemon v1.0.0 // indirect
 	github.com/zdypro888/crash v1.20.0 // indirect
-	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace howett.net/plist => github.com/zdypro888/go-plist v1.20.0

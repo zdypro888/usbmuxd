@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"howett.net/plist"
+	"github.com/zdypro888/go-plist"
 )
 
 //调试过程:
