@@ -166,7 +166,7 @@ func Service(name, description string, dependencies ...string) *DeviceControler 
 	fRunApp := flag.String("apprun", "", "Run ios app")
 	fInstallApp := flag.String("appinstall", "", "path for ipa to install")
 	fUninstallApp := flag.String("appuninstall", "", "BundleID for uninstall")
-	if !daemon.Run(name, description, dependencies...) {
+	if !daemon.RunWithConsole(name, description, dependencies...) {
 		return nil
 	}
 	controler := &DeviceControler{}

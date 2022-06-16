@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/takama/daemon v1.0.0 // indirect
 	github.com/zdypro888/crash v1.20.0 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
