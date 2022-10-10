@@ -24,37 +24,37 @@ import (
 	sudo socat -t100 unix-listen:/var/run/usbmuxd,mode=777,reuseaddr,fork tcp:127.0.0.1:11111
 */
 
-//ErrDeviceDisconnected 设备未找到错误
+// ErrDeviceDisconnected 设备未找到错误
 var ErrDeviceDisconnected = errors.New("device has disconnected")
 
-//ErrDevicePortUnavailable 端口不正确
+// ErrDevicePortUnavailable 端口不正确
 var ErrDevicePortUnavailable = errors.New("Port you're requesting is unavailable")
 
-//ErrDevicePortUnknow 未知错误
+// ErrDevicePortUnknow 未知错误
 var ErrDevicePortUnknow = errors.New("[IDK]: Malformed request received in the device")
 
-//USBListenRequestFrame When we want to listen for any new USB device or device removed
+// USBListenRequestFrame When we want to listen for any new USB device or device removed
 type USBListenRequestFrame struct {
 	MessageType         string `plist:"MessageType"`
 	ClientVersionString string `plist:"ClientVersionString"`
 	ProgName            string `plist:"ProgName"`
 }
 
-//USBGenericACKFrame Its a frame model for generic response after we send listen or connect
-//Number == 0 {OK}, Number == 1 {Device not connected anymore}, Number == 2 {Port not available}, Number == 5 {IDK}
+// USBGenericACKFrame Its a frame model for generic response after we send listen or connect
+// Number == 0 {OK}, Number == 1 {Device not connected anymore}, Number == 2 {Port not available}, Number == 5 {IDK}
 type USBGenericACKFrame struct {
 	MessageType string `plist:"MessageType"`
 	Number      int    `plist:"Number"`
 }
 
-//USBDeviceAttachedDetachedFrame Model for USB connect or disconnect frame
+// USBDeviceAttachedDetachedFrame Model for USB connect or disconnect frame
 type USBDeviceAttachedDetachedFrame struct {
 	MessageType string                               `plist:"MessageType"`
 	DeviceID    int                                  `plist:"DeviceID"`
 	Properties  USBDeviceAttachedPropertiesDictFrame `plist:"Properties"`
 }
 
-//USBDeviceAttachedPropertiesDictFrame Model for USB attach properties
+// USBDeviceAttachedPropertiesDictFrame Model for USB attach properties
 type USBDeviceAttachedPropertiesDictFrame struct {
 	ConnectionSpeed int    `plist:"ConnectionSpeed"`
 	ConnectionType  string `plist:"ConnectionType"`
@@ -64,7 +64,7 @@ type USBDeviceAttachedPropertiesDictFrame struct {
 	SerialNumber    string `plit:"SerialNumber"`
 }
 
-//USBConnectRequestFrame Model for connect frame to a specific port in a connected device
+// USBConnectRequestFrame Model for connect frame to a specific port in a connected device
 type USBConnectRequestFrame struct {
 	MessageType         string `plist:"MessageType"`
 	ClientVersionString string `plist:"ClientVersionString"`
@@ -90,7 +90,7 @@ func (header *usbmuxdHeader) Bytes(data []byte) []byte {
 	copy(buffer[16:], data)
 	return buffer
 }
-func (header *usbmuxdHeader) Command(frame interface{}) ([]byte, error) {
+func (header *usbmuxdHeader) Command(frame any) ([]byte, error) {
 	data := &bytes.Buffer{}
 	encoder := plist.NewEncoder(data)
 	if err := encoder.Encode(frame); err != nil {
@@ -98,7 +98,7 @@ func (header *usbmuxdHeader) Command(frame interface{}) ([]byte, error) {
 	}
 	return header.Bytes(data.Bytes()), nil
 }
-func (header *usbmuxdHeader) Parser(data []byte, frame interface{}) error {
+func (header *usbmuxdHeader) Parser(data []byte, frame any) error {
 	header.Version = binary.LittleEndian.Uint32(data[0:4])
 	header.Request = binary.LittleEndian.Uint32(data[4:8])
 	header.Tag = binary.LittleEndian.Uint32(data[8:12])
@@ -110,14 +110,14 @@ func createHeader() *usbmuxdHeader {
 	return &usbmuxdHeader{Version: 1, Request: 8, Tag: 1}
 }
 
-//USBDeviceDelegate 回调
+// USBDeviceDelegate 回调
 type USBDeviceDelegate interface {
 	USBDeviceDidPlug(*USBDeviceAttachedDetachedFrame)
 	USBDeviceDidUnPlug(*USBDeviceAttachedDetachedFrame)
 	USBDidReceiveErrorWhilePluggingOrUnplugging(error, string)
 }
 
-//USBListener usbmuxd监听
+// USBListener usbmuxd监听
 type USBListener struct {
 	Delegate USBDeviceDelegate
 	running  uint32
@@ -186,7 +186,7 @@ func (listener *USBListener) listenGo() {
 	atomic.StoreUint32(&listener.running, 0)
 }
 
-//Listen 监听设备
+// Listen 监听设备
 func (listener *USBListener) Listen() error {
 	if atomic.CompareAndSwapUint32(&listener.running, 0, 1) {
 		go listener.listenGo()
@@ -195,25 +195,25 @@ func (listener *USBListener) Listen() error {
 	return fmt.Errorf("listener not closed: %d", listener.running)
 }
 
-//Close 监听关闭
+// Close 监听关闭
 func (listener *USBListener) Close() {
 	atomic.StoreUint32(&listener.running, 2)
 }
 
-//USBDevice 客户端
+// USBDevice 客户端
 type USBDevice struct {
 	ID      int
 	UDID    string
 	Product int
 	Pluged  bool
-	Object  interface{}
+	Object  any
 }
 
 func byteSwap(val int) int {
 	return ((val & 0xFF) << 8) | ((val >> 8) & 0xFF)
 }
 
-//Connect 连接
+// Connect 连接
 func (device *USBDevice) Connect(port int, d time.Duration) (net.Conn, error) {
 	var err error
 	var conn net.Conn
@@ -273,7 +273,7 @@ func (device *USBDevice) Connect(port int, d time.Duration) (net.Conn, error) {
 	}
 }
 
-//DialTimeout 连接
+// DialTimeout 连接
 func (device *USBDevice) DialTimeout(network, addr string, t time.Duration) (net.Conn, error) {
 	if network != "usbmuxd" {
 		return nil, fmt.Errorf("Can not support: %s", network)
@@ -285,12 +285,12 @@ func (device *USBDevice) DialTimeout(network, addr string, t time.Duration) (net
 	return device.Connect(port, t)
 }
 
-//Dial 连接
+// Dial 连接
 func (device *USBDevice) Dial(addr string, t time.Duration) (net.Conn, error) {
 	return device.DialTimeout("usbmuxd", addr, t)
 }
 
-//RunApp 运行 APP
+// RunApp 运行 APP
 func (device *USBDevice) RunApp(bundleID string) error {
 	_, ideviceimagemounter, DeveloperDiskImage, idevicedebug, _, err := iMobileDeviceCMD(device.UDID)
 	if err != nil {
@@ -309,7 +309,7 @@ func (device *USBDevice) RunApp(bundleID string) error {
 	return nil
 }
 
-//InstallAPP 安装 app
+// InstallAPP 安装 app
 func (device *USBDevice) InstallAPP(ipa string) error {
 	ideviceinstaller, _, _, _, _, err := iMobileDeviceCMD(device.UDID)
 	if err != nil {
@@ -325,7 +325,7 @@ func (device *USBDevice) InstallAPP(ipa string) error {
 	return nil
 }
 
-//UninstallAPP 卸载 app
+// UninstallAPP 卸载 app
 func (device *USBDevice) UninstallAPP(appid string) error {
 	ideviceinstaller, _, _, _, _, err := iMobileDeviceCMD(device.UDID)
 	if err != nil {
@@ -341,7 +341,7 @@ func (device *USBDevice) UninstallAPP(appid string) error {
 	return nil
 }
 
-//Reboot 重新启动
+// Reboot 重新启动
 func (device *USBDevice) Reboot() error {
 	_, _, _, _, idevicediagnostics, err := iMobileDeviceCMD(device.UDID)
 	if err != nil {
@@ -357,12 +357,12 @@ func (device *USBDevice) Reboot() error {
 	return nil
 }
 
-//Cancel 取消
+// Cancel 取消
 func (device *USBDevice) Cancel() {
 	device.Pluged = false
 }
 
-//SSH SSH连接
+// SSH SSH连接
 func (device *USBDevice) SSH(username, passowrd string) *SSHUtil {
 	return &SSHUtil{
 		UserName: username,
