@@ -5,9 +5,9 @@ go 1.20
 require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/pkg/sftp v1.13.5
-	github.com/zdypro888/daemon v1.60.0
-	github.com/zdypro888/go-plist v1.60.0
-	github.com/zdypro888/utils v1.60.0
+	github.com/zdypro888/daemon v0.0.0-20230701142150-db6364cfdb42
+	github.com/zdypro888/go-plist v0.0.0-20230701023818-1de7c0434684
+	github.com/zdypro888/utils v0.0.0-20230701143214-cb20eea39e0e
 	golang.org/x/crypto v0.10.0
 )
 
