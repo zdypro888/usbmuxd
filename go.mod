@@ -18,6 +18,7 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/takama/daemon v1.0.0 // indirect
-	github.com/zdypro888/crash v1.60.0 // indirect
+	github.com/zdypro888/crash v0.0.0-20230701030946-4742d1f95c09 // indirect
 	golang.org/x/sys v0.9.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
